@@ -67,7 +67,7 @@ const create = async (req, res) => {
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       association: req.body.association,
-      nbEdition: req.body.nbEdition,
+      nbEdition:0,
       pseudo: req.body.pseudo,
       postalAdress: req.body.postalAdress,
       propo: req.body.propo,

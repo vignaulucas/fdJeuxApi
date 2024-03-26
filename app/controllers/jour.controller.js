@@ -3,7 +3,7 @@ const { Jour, Horaire } = require('../models');
 const create = async (req, res) => {
   try {
     const jour = await Jour.create({
-      nom :  req.body.nom,
+      Date :  req.body.nom,
       idPlanning : req.body.idPlanning,
     });
     res.status(201).json(jour);

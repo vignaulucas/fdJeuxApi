@@ -6,9 +6,13 @@ const db = require('../models');
 const Csv = db.Csv;
 
 const importCsv = async (req, res) => {
-    const filePath = path.join(__dirname, '../../../frontfestivaldujeu/public/exportjeux.csv');
+    if (!req.file) {
+        console.error('Aucun fichier fourni');
+        return res.status(400).json({ error: 'Veuillez fournir un fichier CSV.' });
+    }
+    const filePath = req.file.path;
 
-    // Suppression des données existantes
+    let insertPromises = [];
     try {
         await Csv.destroy({
             where: {}, // Un objet vide signifie aucun critère de filtrage
@@ -19,8 +23,8 @@ const importCsv = async (req, res) => {
         console.error('Erreur lors de la suppression des données existantes:', error);
         return res.status(500).json({ error: 'Erreur lors de la suppression des données existantes' });
     }
-
     // Lecture et insertion des nouvelles données
+    const produitsData = [];
     fs.createReadStream(filePath)
         // .pipe(iconv.decodeStream('win1252')) // Convertir de Windows-1252 à UTF-8
         // .pipe(iconv.encodeStream('utf8')) // Encodage en UTF-8
@@ -49,28 +53,30 @@ const importCsv = async (req, res) => {
                 logo: row['Logo'],
                 video: row['Vidéo']
             };
-
-            try {
-                // Vérifier si un produit avec le même nom existe déjà
-                const existingProduct = await Csv.findOne({ where: { nameGame: produitData.nameGame } });
-                if (existingProduct) {
-                    console.log(`Le produit "${produitData.nameGame}" existe déjà, il ne sera pas inséré à nouveau.`);
-                } else {
-                    // Insérer les nouvelles données dans la base de données
-                    await Csv.create(produitData);
-                    console.log(`Enregistrement inséré avec succès: ${produitData.nameGame}`);
-                }
-            } catch (error) {
-                // Gérez les erreurs d'insertion ici
-                console.error('Erreur lors de l\'insertion de l\'enregistrement:', error);
-            }
+            produitsData.push(produitData);
         })
         .on('end', () => {
-            console.log('Importation terminée');
-            res.json({ message: 'Importation des données CSV terminée avec succès' });
+            Csv.bulkCreate(produitsData)
+                .then(() => {
+                    console.log('Importation terminée');
+                    res.json({ message: 'Importation des données CSV terminée avec succès' });
+                })
+                .catch((error) => {
+                    console.error('Erreur lors de l\'insertion des données:', error);
+                    res.status(500).json({ error: 'Erreur lors de l\'importation des données CSV' });
+                })
+                .finally(() => {
+                    fs.unlink(filePath, err => {
+                        if (err) console.error('Erreur lors de la suppression du fichier temporaire:', err);
+                    });
+                });
+
         })
         .on('error', (error) => {
             console.error('Erreur lors de la lecture du fichier CSV:', error);
+            fs.unlink(filePath, err => {
+                if (err) console.error('Erreur lors de la suppression du fichier temporaire:', err);
+            });
             res.status(500).json({ error: 'Erreur lors de l\'importation des données CSV' });
         });
 };
@@ -113,4 +119,4 @@ const getAllEspace = async (req, res) => {
     }
 }
 
-module.exports = { importCsv, getCsv, getAllEspace,getJeuByEspace };
+module.exports = { importCsv, getCsv, getAllEspace, getJeuByEspace };

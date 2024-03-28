@@ -97,6 +97,21 @@ const getCreneauById = async (req, res) => {
     }
 };
 
+const getAllCreneauxFestival = async (req, res) => {
+    try {
+        const creneau = await Creneaux.findAll({
+        where: {
+            idPlanning: req.params.idPlanning,
+        },
+        });
+        if (!creneau) throw new Error('Creneau not found');
+        res.send(creneau);
+    } catch (error) {
+        console.log(error);
+        res.status(400).send({ errors: error.message });
+    }
+    }
+
 
 const modifyReferent = async (req, res) => {
     try {
@@ -281,5 +296,6 @@ const deleteById = async (req, res) => {
         deleteLigne,
         getbyJour,
         deleteByHoraireId,
-        deleteByJourId
+        deleteByJourId,
+        getAllCreneauxFestival,
     }

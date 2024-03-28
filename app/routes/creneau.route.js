@@ -6,6 +6,8 @@ module.exports = app => {
     
     router.post('/', controller.createCreneau);
 
+    router.get('/:idPlanning', isLoggedIn, controller.getAllCreneauxFestival);
+
     router.get('/:JourId/:HoraireId/:LigneId/:idPlanning', isLoggedIn, controller.getbyId);
 
     router.get('/getbyjour/:JourId/:PlanningId', isLoggedIn, controller.getbyJour);

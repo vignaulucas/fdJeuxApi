@@ -11,6 +11,7 @@ const init = require('./init');
 const allowedOrigins = [
   'http://localhost:3000',
   'https://festival-jeu-mtp.onrender.com',
+  'https://fdjeuxfront.onrender.com',
 ];
 
 app.use(cors({
